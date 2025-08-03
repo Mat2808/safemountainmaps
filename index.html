@@ -6,7 +6,7 @@
   <title>SafeMountain - Sicurezza Escursionisti</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
- <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 <style>
   body {
     font-family: 'Montserrat', Arial, sans-serif;
@@ -77,7 +77,7 @@
     font-size: 1em;
     box-shadow: 0 2px 8px #0001;
   }
-  /* --- MODALE --- */
+  /* --- MODALE MULTI-CAMPO --- */
   #modal-nome-zona {
     display: none; position: fixed; z-index: 9999;
     left: 0; top: 0; width: 100vw; height: 100vh;
@@ -91,18 +91,18 @@
     border-radius: 14px;
     box-shadow: 0 6px 26px #0004;
     padding: 30px 32px 22px 32px;
-    min-width: 230px; max-width: 95vw;
+    min-width: 340px; max-width: 99vw;
     text-align: center;
     border: 2px solid #33ad69;
     animation: modalpop 0.22s;
   }
   @keyframes modalpop {
-    0% { opacity: 0; transform: scale(1.08);}
+    0% { opacity: 0; transform: scale(1.09);}
     100% { opacity: 1; transform: scale(1);}
   }
-  #modal-content-nomezona input {
-    font-size: 1em; padding: 11px 9px; width: 92%;
-    margin-bottom: 17px; border-radius: 7px; border: 1.3px solid #86d6ba;
+  #modal-content-nomezona input, #modal-content-nomezona select {
+    font-size: 1em; padding: 9px 8px; width: 98%;
+    margin-bottom: 11px; border-radius: 7px; border: 1.2px solid #86d6ba;
   }
   #modal-content-nomezona button {
     padding: 7px 20px; font-weight: bold; border: none; border-radius: 6px;
@@ -142,12 +142,20 @@
     <p>Questo progetto permette agli enti di creare mappe di aree pericolose in montagna, scaricabili da escursionisti per dispositivi di sicurezza.</p>
   </section>
 
-  <!-- MODALE NOME ZONA -->
+  <!-- MODALE ESTESA -->
   <div id="modal-nome-zona">
     <div id="modal-content-nomezona">
-      <div class="titolo">Assegna un nome alla zona</div>
-      <input id="input-nome-zona" type="text" maxlength="50" placeholder="Es: Costa Est, Valanga B, ecc..." autocomplete="off">
-      <br>
+      <div class="titolo">Definisci questa zona</div>
+      <input id="input-nome-zona" type="text" maxlength="50" placeholder="Nome zona (es: Pista B, Valanga Nord)" autocomplete="off"><br>
+      <select id="tipo-zona">
+        <option value="">Tipo di zona...</option>
+        <option value="Pista Sci">Pista Sci</option>
+        <option value="Fuori Pista">Fuori Pista</option>
+        <option value="Valanga">Valanga</option>
+        <option value="Area Sosta">Area Sosta</option>
+        <option value="Altro">Altro</option>
+      </select><br>
+      <input id="input-comprensorio" type="text" maxlength="50" placeholder="Comprensorio / Area (es: Gran Sasso)" autocomplete="off"><br>
       <button id="btn-nome-conferma">OK</button>
       <button id="btn-nome-cancella">Annulla</button>
     </div>
@@ -180,38 +188,37 @@
     map.addControl(drawControl);
 
     let allGeoJSON = [];
-    let areaPending = null; // layer temporaneo
+    let areaPending = null;
 
-    // --- GESTIONE MODALE ---
+    // --- MODALE MULTI-CAMPO ---
     function openNomeModal(callback) {
       const modal = document.getElementById('modal-nome-zona');
       modal.classList.add('active');
-      const input = document.getElementById('input-nome-zona');
-      input.value = '';
-      input.focus();
+      const inputNome = document.getElementById('input-nome-zona');
+      const inputTipo = document.getElementById('tipo-zona');
+      const inputCompr = document.getElementById('input-comprensorio');
+      inputNome.value = '';
+      inputTipo.value = '';
+      inputCompr.value = '';
+      inputNome.focus();
 
       const btnOk = document.getElementById('btn-nome-conferma');
       const btnCancel = document.getElementById('btn-nome-cancella');
-
-      // Rimozione vecchi handler per sicurezza
       btnOk.onclick = null;
       btnCancel.onclick = null;
 
       btnOk.onclick = function () {
-        let val = input.value.trim();
+        let nome = inputNome.value.trim();
+        let tipo = inputTipo.value.trim();
+        let compr = inputCompr.value.trim();
         closeNomeModal();
-        callback(val);
+        callback({nome, tipo, compr});
       };
       btnCancel.onclick = function () {
         closeNomeModal();
         callback(null);
       };
-
-      // Invio con Enter
-      input.onkeydown = function(e) {
-        if(e.key === "Enter") btnOk.click();
-        if(e.key === "Escape") btnCancel.click();
-      };
+      inputNome.onkeydown = function(e) { if(e.key==="Enter") btnOk.click(); if(e.key==="Escape") btnCancel.click(); };
     }
     function closeNomeModal() {
       document.getElementById('modal-nome-zona').classList.remove('active');
@@ -219,18 +226,28 @@
 
     map.on(L.Draw.Event.CREATED, function (e) {
       areaPending = e.layer;
-      openNomeModal(function(nomeZona) {
-        if (nomeZona) {
+      openNomeModal(function(datiZona) {
+        if (datiZona && datiZona.nome) {
+          // Aggiungi tutte le proprietà
           areaPending.feature = areaPending.feature || {};
           areaPending.feature.properties = areaPending.feature.properties || {};
-          areaPending.feature.properties.name = nomeZona;
-          areaPending.bindPopup(`<b>${nomeZona}</b>`);
+          areaPending.feature.properties.name = datiZona.nome;
+          areaPending.feature.properties.tipo = datiZona.tipo;
+          areaPending.feature.properties.comprensorio = datiZona.compr;
+          // Popup ricco
+          areaPending.bindPopup(
+            `<b>${datiZona.nome}</b><br>`
+            + (datiZona.tipo ? `<i>Tipo:</i> ${datiZona.tipo}<br>` : '')
+            + (datiZona.compr ? `<i>Comprensorio:</i> ${datiZona.compr}` : '')
+          );
         }
         drawnItems.addLayer(areaPending);
         const geojson = areaPending.toGeoJSON();
-        if (nomeZona) {
+        if (datiZona) {
           geojson.properties = geojson.properties || {};
-          geojson.properties.name = nomeZona;
+          geojson.properties.name = datiZona.nome;
+          geojson.properties.tipo = datiZona.tipo;
+          geojson.properties.comprensorio = datiZona.compr;
         }
         allGeoJSON.push(geojson);
         areaPending = null;
@@ -256,4 +273,6 @@
   </script>
 </body>
 </html>
+
+
 
