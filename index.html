@@ -77,6 +77,40 @@
     font-size: 1em;
     box-shadow: 0 2px 8px #0001;
   }
+  /* --- MODALE --- */
+  #modal-nome-zona {
+    display: none; position: fixed; z-index: 9999;
+    left: 0; top: 0; width: 100vw; height: 100vh;
+    background: rgba(45,70,38,0.18);
+    backdrop-filter: blur(2px);
+    align-items: center; justify-content: center;
+  }
+  #modal-nome-zona.active { display: flex; }
+  #modal-content-nomezona {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 6px 26px #0004;
+    padding: 30px 32px 22px 32px;
+    min-width: 230px; max-width: 95vw;
+    text-align: center;
+    border: 2px solid #33ad69;
+    animation: modalpop 0.22s;
+  }
+  @keyframes modalpop {
+    0% { opacity: 0; transform: scale(1.08);}
+    100% { opacity: 1; transform: scale(1);}
+  }
+  #modal-content-nomezona input {
+    font-size: 1em; padding: 11px 9px; width: 92%;
+    margin-bottom: 17px; border-radius: 7px; border: 1.3px solid #86d6ba;
+  }
+  #modal-content-nomezona button {
+    padding: 7px 20px; font-weight: bold; border: none; border-radius: 6px;
+    cursor: pointer; margin-right: 7px; font-size: 1em;
+  }
+  #btn-nome-conferma { background: #299d42; color: white; }
+  #btn-nome-cancella { background: #e7e7e7; color: #25622d; }
+  #modal-content-nomezona .titolo { color: #25622d; font-weight: 700; font-size: 1.07em; margin-bottom: 15px;}
 </style>
 </head>
 <body>
@@ -108,6 +142,17 @@
     <p>Questo progetto permette agli enti di creare mappe di aree pericolose in montagna, scaricabili da escursionisti per dispositivi di sicurezza.</p>
   </section>
 
+  <!-- MODALE NOME ZONA -->
+  <div id="modal-nome-zona">
+    <div id="modal-content-nomezona">
+      <div class="titolo">Assegna un nome alla zona</div>
+      <input id="input-nome-zona" type="text" maxlength="50" placeholder="Es: Costa Est, Valanga B, ecc..." autocomplete="off">
+      <br>
+      <button id="btn-nome-conferma">OK</button>
+      <button id="btn-nome-cancella">Annulla</button>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
   <script>
@@ -135,13 +180,62 @@
     map.addControl(drawControl);
 
     let allGeoJSON = [];
+    let areaPending = null; // layer temporaneo
+
+    // --- GESTIONE MODALE ---
+    function openNomeModal(callback) {
+      const modal = document.getElementById('modal-nome-zona');
+      modal.classList.add('active');
+      const input = document.getElementById('input-nome-zona');
+      input.value = '';
+      input.focus();
+
+      const btnOk = document.getElementById('btn-nome-conferma');
+      const btnCancel = document.getElementById('btn-nome-cancella');
+
+      // Rimozione vecchi handler per sicurezza
+      btnOk.onclick = null;
+      btnCancel.onclick = null;
+
+      btnOk.onclick = function () {
+        let val = input.value.trim();
+        closeNomeModal();
+        callback(val);
+      };
+      btnCancel.onclick = function () {
+        closeNomeModal();
+        callback(null);
+      };
+
+      // Invio con Enter
+      input.onkeydown = function(e) {
+        if(e.key === "Enter") btnOk.click();
+        if(e.key === "Escape") btnCancel.click();
+      };
+    }
+    function closeNomeModal() {
+      document.getElementById('modal-nome-zona').classList.remove('active');
+    }
 
     map.on(L.Draw.Event.CREATED, function (e) {
-      const layer = e.layer;
-      drawnItems.addLayer(layer);
-      const geojson = layer.toGeoJSON();
-      allGeoJSON.push(geojson);
-      alert("Zona aggiunta. Ricordati di scaricare le coordinate quando hai finito.");
+      areaPending = e.layer;
+      openNomeModal(function(nomeZona) {
+        if (nomeZona) {
+          areaPending.feature = areaPending.feature || {};
+          areaPending.feature.properties = areaPending.feature.properties || {};
+          areaPending.feature.properties.name = nomeZona;
+          areaPending.bindPopup(`<b>${nomeZona}</b>`);
+        }
+        drawnItems.addLayer(areaPending);
+        const geojson = areaPending.toGeoJSON();
+        if (nomeZona) {
+          geojson.properties = geojson.properties || {};
+          geojson.properties.name = nomeZona;
+        }
+        allGeoJSON.push(geojson);
+        areaPending = null;
+        alert("Zona aggiunta. Ricordati di scaricare le coordinate quando hai finito.");
+      });
     });
 
     document.getElementById("download").addEventListener("click", function() {
@@ -162,3 +256,4 @@
   </script>
 </body>
 </html>
+
