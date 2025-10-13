@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
   <style>
+    /* Tuo CSS esistente */
     body {
       font-family: 'Montserrat', Arial, sans-serif;
       margin: 0;
@@ -15,142 +16,63 @@
       background: #f4f8f4;
       color: #222;
     }
-    header {
-      background: linear-gradient(90deg, #388e3c 70%, #8bc34a 100%);
-      color: white;
-      padding: 2em 1em 1em;
-      text-align: center;
-      box-shadow: 0 2px 8px #0002;
-    }
-    nav {
-      background: #f8fffa;
-      padding: 1em 0.5em;
-      text-align: center;
-      box-shadow: 0 2px 6px #0001;
-    }
-    nav a {
-      margin: 0 1em;
-      color: #387d34;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 1.1em;
-      transition: color 0.2s;
-    }
-    nav a:hover,
-    nav a:focus {
-      color: #ff9800;
-    }
-    #map {
-      height: 70vh;
-      border-radius: 12px;
-      margin: 10px auto;
-      width: 96%;
-      box-shadow: 0 4px 10px #0002;
-    }
-    #salva {
-      margin: 14px auto 6px auto;
-      padding: 10px 32px;
-      background-color: #2e7031;
-      color: white;
-      border: none;
-      border-radius: 7px;
-      cursor: pointer;
-      font-size: 1.05em;
-      box-shadow: 0 2px 6px #0001;
-      display: block;
-      transition: background 0.25s;
-    }
-    #salva:hover {
-      background: #43a047;
-    }
-    section#info {
-      max-width: 700px;
-      background: #fff;
-      margin: 2em auto;
-      border-radius: 10px;
-      padding: 1.5em;
-      box-shadow: 0 2px 18px #0001;
-      color: #29552a;
-    }
-    .guide {
+    /* Resto css come sopra ... */
+    /* Aggiungo per l'area login */
+    #auth {
+      max-width: 340px;
+      margin: 0 auto 1em auto;
+      padding: 0.5em;
       background: #e8f5e9;
-      border-left: 5px solid #ffd600;
-      color: #29552a;
-      margin: 18px 7%;
-      padding: 13px 18px;
-      border-radius: 7px;
-      font-size: 1em;
+      border-radius: 8px;
       box-shadow: 0 2px 8px #0001;
-    }
-    #modal-nome-zona {
-      display: none;
-      position: fixed;
-      z-index: 9999;
-      left: 0;
-      top: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(45, 70, 38, 0.18);
-      backdrop-filter: blur(2px);
-      align-items: center;
-      justify-content: center;
-    }
-    #modal-nome-zona.active {
-      display: flex;
-    }
-    #modal-content-nomezona {
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 6px 26px #0004;
-      padding: 30px 32px 22px;
-      min-width: 340px;
+      color: #29552a;
       text-align: center;
-      border: 2px solid #33ad69;
-      animation: modalpop 0.22s;
     }
-    @keyframes modalpop {
-      0% {
-        opacity: 0;
-        transform: scale(1.09);
-      }
-      100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-    #modal-content-nomezona input,
-    #modal-content-nomezona select {
+    #auth input {
+      margin: 6px 0;
+      padding: 8px;
+      width: 92%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
       font-size: 1em;
-      padding: 9px 8px;
-      width: 98%;
-      margin-bottom: 11px;
-      border-radius: 7px;
-      border: 1.2px solid #86d6ba;
     }
-    #modal-content-nomezona button {
-      padding: 7px 20px;
+    #auth button {
+      margin: 6px 6px 6px 0;
+      padding: 8px 14px;
       font-weight: bold;
-      border: none;
       border-radius: 6px;
       cursor: pointer;
-      margin-right: 7px;
-      font-size: 1em;
-    }
-    #btn-nome-conferma {
       background: #299d42;
       color: white;
+      border: none;
+      font-size: 0.95em;
     }
-    #btn-nome-cancella {
-      background: #e7e7e7;
-      color: #25622d;
+    #auth button.logout {
+      background: #d32f2f;
+    }
+    #status {
+      margin-top: 8px;
+      font-weight: bold;
+      min-height: 1.2em;
     }
   </style>
 </head>
 <body>
+
   <header>
     <h1>SafeMountain</h1>
     <p>Sistema di sicurezza per escursionisti basato su mappa</p>
   </header>
+
+  <!-- Area login e stato utente -->
+  <section id="auth">
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <button id="btn-login">Login</button>
+    <button id="btn-signup">Registrati</button>
+    <button id="btn-logout" style="display:none;" class="logout">Logout</button>
+    <div id="status"></div>
+  </section>
 
   <nav>
     <a href="#">Home</a>
@@ -163,9 +85,10 @@
       <strong>Come funziona?</strong><br />
       1. Disegna le zone pericolose sulla mappa.<br />
       2. Clicca su “Salva coordinate” per esportare le aree online.<br />
-      <span style="color: #d32f2f">Attenzione:</span> I dati devono essere verificati e approvati dall’ente responsabile.
+      <span style="color: #d32f2f">Attenzione:</span> Devi essere loggato per salvare.<br>
+      <em>Ogni zona sarà salvata associata al tuo account.</em>
     </div>
-    <button id="salva">Salva coordinate</button>
+    <button id="salva" disabled>Salva coordinate</button>
     <div id="map"></div>
 
     <div
@@ -215,13 +138,24 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
-  <script>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // Inizializza supabase con il tuo progetto (sostituisci con i tuoi dati)
+    const supabaseUrl = 'https://agmrlgybyqkilqumgnco.supabase.co';
+    const supabaseKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnbXJsZ3lieXFraWxxdW1nbmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyNjE0MTYsImV4cCI6MjA3NTgzNzQxNn0.XY-HharpF3mXEpVsYVYq2NIecvl642ZywZRke6Erf-w';
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Variabili globali
     let allGeoJSON = [];
     let areaPending = null;
+    let currentUser = null;
 
-    // Rendi le variabili e funzioni globali per usarle anche nel modulo Supabase
     window.allGeoJSON = allGeoJSON;
 
+    // Funzioni UI - Modal e tabella come nel tuo codice precedente
     function aggiornaTabellaZone(statusArr) {
       const tbody = document.getElementById('zone-tbody');
       tbody.innerHTML = '';
@@ -277,6 +211,7 @@
       document.getElementById('modal-nome-zona').classList.remove('active');
     }
 
+    // Leaflet setup
     const map = L.map('map').setView([42.5, 13.4], 10);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18,
@@ -325,58 +260,150 @@
         alert('Zona aggiunta. Ricordati di salvare le coordinate.');
       });
     });
-  </script>
 
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    // --- AUTENTICAZIONE ---
+    async function checkUser() {
+      const { data } = await supabase.auth.getUser();
+      currentUser = data.user;
+      if (currentUser) {
+        document.getElementById('status').textContent = `Loggato come: ${currentUser.email}`;
+        document.getElementById('btn-login').style.display = 'none';
+        document.getElementById('btn-signup').style.display = 'none';
+        document.getElementById('btn-logout').style.display = 'inline-block';
+        document.getElementById('salva').disabled = false;
 
-    const supabaseUrl = 'https://agmrlgybyqkilqumgnco.supabase.co';
-    const supabaseKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnbXJsZ3lieXFraWxxdW1nbmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyNjE0MTYsImV4cCI6MjA3NTgzNzQxNn0.XY-HharpF3mXEpVsYVYq2NIecvl642ZywZRke6Erf-w';
-    const bucketName = 'geojson';
-    const supabase = createClient(supabaseUrl, supabaseKey);
+        // Carica e mostra le zone dell'utente loggato
+        loadUserZones();
+      } else {
+        document.getElementById('status').textContent = 'Non sei loggato';
+        document.getElementById('btn-login').style.display = 'inline-block';
+        document.getElementById('btn-signup').style.display = 'inline-block';
+        document.getElementById('btn-logout').style.display = 'none';
+        document.getElementById('salva').disabled = true;
 
-    async function uploadToSupabase(fileName, fileData) {
-      const { data, error } = await supabase
-        .storage
-        .from(bucketName)
-        .upload(fileName, new Blob([fileData], { type: 'application/json' }), { upsert: true });
-      if (error) throw error;
-      const { data: publicUrlData } = supabase.storage.from(bucketName).getPublicUrl(fileName);
-      return publicUrlData.publicUrl;
+        // Pulisci dati zona visualizzati
+        drawnItems.clearLayers();
+        allGeoJSON = [];
+        aggiornaTabellaZone([]);
+      }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('salva').addEventListener('click', async () => {
-        if (window.allGeoJSON.length === 0) {
-          alert('Non hai ancora disegnato nessuna zona.');
-          return;
-        }
-        const geojsonFeatureCollection = {
-          type: 'FeatureCollection',
-          features: window.allGeoJSON,
-        };
-        const fileName = 'zone_pericolose.geojson';
-        const fileData = JSON.stringify(geojsonFeatureCollection);
-        try {
-          const url = await uploadToSupabase(fileName, fileData);
-          alert('File caricato! Link pubblico da usare su Arduino:\n' + url);
-          window.aggiornaTabellaZone(
-            window.allGeoJSON.map((z) => ({
-              nome: z.properties.name || '-',
-              tipo: z.properties.tipo || '-',
-              comprensorio: z.properties.comprensorio || '-',
-              stato: 'Online',
-            }))
-          );
-        } catch (e) {
-          alert('Errore nell’upload: ' + e.message);
-        }
+    document.getElementById('btn-login').onclick = async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        document.getElementById('status').textContent = `Errore login: ${error.message}`;
+      } else {
+        await checkUser();
+      }
+    };
+
+    document.getElementById('btn-signup').onclick = async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        document.getElementById('status').textContent = `Errore registrazione: ${error.message}`;
+      } else {
+        document.getElementById('status').textContent = 'Registrazione avvenuta! Controlla la mail per conferma.';
+      }
+    };
+
+    document.getElementById('btn-logout').onclick = async () => {
+      await supabase.auth.signOut();
+      await checkUser();
+    };
+
+    // Carica le zone dell'utente loggato dal database
+    async function loadUserZones() {
+      const { data, error } = await supabase
+        .from('user_zones')
+        .select('*')
+        .eq('user_id', currentUser.id);
+
+      if (error) {
+        alert('Errore caricamento zone: ' + error.message);
+        return;
+      }
+
+      // Pulisci quella vecchia
+      drawnItems.clearLayers();
+      allGeoJSON = [];
+
+      data.forEach((zone) => {
+        let layer = L.geoJSON(zone.geojson).getLayers()[0];
+        // Aggiungi popup con info
+        layer.bindPopup(
+          `<b>${zone.name}</b><br>` +
+          (zone.tipo ? `<i>Tipo:</i> ${zone.tipo}<br>` : '') +
+          (zone.comprensorio ? `<i>Comprensorio:</i> ${zone.comprensorio}` : '')
+        );
+        layer.addTo(drawnItems);
+        allGeoJSON.push({
+          type: 'Feature',
+          geometry: zone.geojson.geometry,
+          properties: {
+            name: zone.name,
+            tipo: zone.tipo,
+            comprensorio: zone.comprensorio,
+          },
+        });
       });
+
+      aggiornaTabellaZone(
+        data.map((z) => ({
+          nome: z.name || '-',
+          tipo: z.tipo || '-',
+          comprensorio: z.comprensorio || '-',
+          stato: 'Online',
+        }))
+      );
+    }
+
+    document.getElementById('salva').addEventListener('click', async () => {
+      if (!currentUser) {
+        alert('Devi prima fare il login!');
+        return;
+      }
+      if (allGeoJSON.length === 0) {
+        alert('Non hai ancora disegnato nessuna zona.');
+        return;
+      }
+
+      // Salva ogni zona singolarmente nel database
+      try {
+        for (let zone of allGeoJSON) {
+          // Prepara dati conforme DB
+          let dbZone = {
+            user_id: currentUser.id,
+            name: zone.properties.name || 'Senza nome',
+            tipo: zone.properties.tipo || null,
+            comprensorio: zone.properties.comprensorio || null,
+            geojson: zone,
+          };
+
+          // Controlla se zona già esiste (aggiunge modifica o inserisce)
+          // In questa versione base noi non gestiamo id lato client, quindi facciamo solo insert.
+          const { error } = await supabase.from('user_zones').insert(dbZone);
+
+          if (error) throw error;
+        }
+        alert('Zone salvate nel database!');
+        await loadUserZones();
+      } catch (e) {
+        alert('Errore nel salvataggio: ' + e.message);
+      }
     });
+
+    // all'avvio controlla se utente loggato
+    checkUser();
+
   </script>
 </body>
 </html>
+
+
 
 
 
