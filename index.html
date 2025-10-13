@@ -390,32 +390,38 @@
       });
     });
 
-   document.getElementById('salva').addEventListener('click', async () => {
-  const user = await checkAuth();
-  if (allGeoJSON.length === 0) {
-    alert('Non hai ancora disegnato nessuna zona.');
-    return;
-  }
-  try {
-    for (const zone of allGeoJSON) {
-      const dbZone = {
-        user_id: user.id,
-        name: zone.properties.name || 'Senza nome',
-        tipo: zone.properties.tipo || null,
-        comprensorio: zone.properties.comprensorio || null,
-        geojson: zone,
-      };
-      await supabase.from('user_zones').insert(dbZone);
-    }
-    alert('Zone salvate nel database!');
-    await loadUserZones(); // Ricarica le zone fresche dal DB dopo salvataggio
-  } catch (e) {
-    alert('Errore nel salvataggio: ' + e.message);
-  }
-});
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('salva').addEventListener('click', async () => {
+        if (window.allGeoJSON.length === 0) {
+          alert('Non hai ancora disegnato nessuna zona.');
+          return;
+        }
+        const geojsonFeatureCollection = {
+          type: 'FeatureCollection',
+          features: window.allGeoJSON,
+        };
+        const fileName = 'zone_pericolose.geojson';
+        const fileData = JSON.stringify(geojsonFeatureCollection);
+        try {
+          const url = await uploadToSupabase(fileName, fileData);
+          alert('File caricato! Link pubblico da usare su Arduino:\n' + url);
+          window.aggiornaTabellaZone(
+            window.allGeoJSON.map((z) => ({
+              nome: z.properties.name || '-',
+              tipo: z.properties.tipo || '-',
+              comprensorio: z.properties.comprensorio || '-',
+              stato: 'Online',
+            }))
+          );
+        } catch (e) {
+          alert('Errore nell’upload: ' + e.message);
+        }
+      });
+    });
   </script>
 </body>
 </html>
+
 
 
 
