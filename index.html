@@ -242,6 +242,55 @@
       return data.user;
     }
 
+    // Funzione per caricare le zone salvate dell'utente
+    async function caricaZoneUtente() {
+      const user = await checkAuth();
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('user_zones')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (error) {
+        console.error('Errore nel caricamento delle zone:', error);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        data.forEach((zone) => {
+          const geojson = zone.geojson;
+          if (geojson && geojson.geometry) {
+            // Crea il layer dalla geometria GeoJSON
+            const layer = L.geoJSON(geojson).getLayers()[0];
+            if (layer) {
+              // Imposta popup con i dati della zona
+              const props = geojson.properties || {};
+              layer.bindPopup(
+                `<b>${props.name || zone.name || 'Senza nome'}</b><br>` +
+                (props.tipo ? `<i>Tipo:</i> ${props.tipo}<br>` : '') +
+                (props.comprensorio ? `<i>Comprensorio:</i> ${props.comprensorio}` : '')
+              );
+              // Aggiungi il layer alla mappa
+              drawnItems.addLayer(layer);
+              // Aggiungi il GeoJSON all'array globale
+              allGeoJSON.push(geojson);
+            }
+          }
+        });
+        
+        // Aggiorna la tabella con le zone caricate
+        aggiornaTabellaZone(
+          data.map((z) => ({
+            nome: z.name || '-',
+            tipo: z.tipo || '-',
+            comprensorio: z.comprensorio || '-',
+            stato: 'Online',
+          }))
+        );
+      }
+    }
+
     // Logout button
     document.getElementById('btn-logout').onclick = async () => {
       await supabase.auth.signOut();
@@ -364,38 +413,40 @@
 
     // Salva zone nel DB supabase al click bottone
     document.getElementById('salva').addEventListener('click', async () => {
-      const user = await checkAuth();
-      if (allGeoJSON.length === 0) {
-        alert('Non hai ancora disegnato nessuna zona.');
-        return;
-      }
-      try {
-        for (const zone of allGeoJSON) {
-          const dbZone = {
-            user_id: user.id,
-            name: zone.properties.name || 'Senza nome',
-            tipo: zone.properties.tipo || null,
-            comprensorio: zone.properties.comprensorio || null,
-            geojson: zone,
-          };
-          await supabase.from('user_zones').insert(dbZone);
-        }
-        alert('Zone salvate nel database!');
-        aggiornaTabellaZone(
-          allGeoJSON.map((z) => ({
-            nome: z.properties.name || '-',
-            tipo: z.properties.tipo || '-',
-            comprensorio: z.properties.comprensorio || '-',
-            stato: 'Online',
-          }))
-        );
-      } catch (e) {
-        alert('Errore nel salvataggio: ' + e.message);
-      }
-    });
-  </script>
+  const user = await checkAuth();
+  if (allGeoJSON.length === 0) {
+    alert('Non hai ancora disegnato nessuna zona.');
+    return;
+  }
+  try {
+    for (const zone of allGeoJSON) {
+      const dbZone = {
+        user_id: user.id,
+        name: zone.properties.name || 'Senza nome',
+        tipo: zone.properties.tipo || null,
+        comprensorio: zone.properties.comprensorio || null,
+        geojson: zone,
+      };
+      // Upsert: inserisce o aggiorna se esistono user_id e name uguali
+      await supabase.from('user_zones').upsert(dbZone, { onConflict: ['user_id', 'name'] });
+    }
+    alert('Zone salvate nel database!');
+    aggiornaTabellaZone(
+      allGeoJSON.map((z) => ({
+        nome: z.properties.name || '-',
+        tipo: z.properties.tipo || '-',
+        comprensorio: z.properties.comprensorio || '-',
+        stato: 'Online',
+      }))
+    );
+  } catch (e) {
+    alert('Errore nel salvataggio: ' + e.message);
+  }
+});
+</script>
 </body>
 </html>
+
 
 
 
