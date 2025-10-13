@@ -390,32 +390,33 @@
       });
     });
 
-    document.getElementById('salva').addEventListener('click', async () => {
-      const user = await checkAuth();
-      if (allGeoJSON.length === 0) {
-        alert('Non hai ancora disegnato nessuna zona.');
-        return;
-      }
-      try {
-        for (const zone of allGeoJSON) {
-          const dbZone = {
-            user_id: user.id,
-            name: zone.properties.name || 'Senza nome',
-            tipo: zone.properties.tipo || null,
-            comprensorio: zone.properties.comprensorio || null,
-            geojson: zone,
-          };
-          await supabase.from('user_zones').insert(dbZone);
-        }
-        alert('Zone salvate nel database!');
-        await loadUserZones(); // Ricarica le zone fresche dal DB dopo salvataggio
-      } catch (e) {
-        alert('Errore nel salvataggio: ' + e.message);
-      }
-    });
+   document.getElementById('salva').addEventListener('click', async () => {
+  const user = await checkAuth();
+  if (allGeoJSON.length === 0) {
+    alert('Non hai ancora disegnato nessuna zona.');
+    return;
+  }
+  try {
+    for (const zone of allGeoJSON) {
+      const dbZone = {
+        user_id: user.id,
+        name: zone.properties.name || 'Senza nome',
+        tipo: zone.properties.tipo || null,
+        comprensorio: zone.properties.comprensorio || null,
+        geojson: zone,
+      };
+      await supabase.from('user_zones').insert(dbZone);
+    }
+    alert('Zone salvate nel database!');
+    await loadUserZones(); // Ricarica le zone fresche dal DB dopo salvataggio
+  } catch (e) {
+    alert('Errore nel salvataggio: ' + e.message);
+  }
+});
   </script>
 </body>
 </html>
+
 
 
 
