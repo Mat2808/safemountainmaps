@@ -587,6 +587,7 @@
       authContainer.style.display = 'none';
       logoutBtn.style.display = 'block';
       mappaSection.style.display = 'block';
+      map.invalidateSize();
       infoSection.style.display = 'block';
       // Impostiamo la vista pagina su mappa
       location.hash = 'mappa';
@@ -611,7 +612,6 @@
         authContainer.style.display = 'none';
         logoutBtn.style.display = 'block';
         mappaSection.style.display = 'block';
-        map.invalidateSize();
         infoSection.style.display = 'block';
         location.hash = 'mappa';
       } else {
@@ -639,6 +639,7 @@
   </script>
 </body>
 </html>
+
 
 
 
