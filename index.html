@@ -21,7 +21,6 @@
       padding: 2em 1em 1em;
       text-align: center;
       box-shadow: 0 2px 8px #0002;
-      position: relative;
     }
     nav {
       background: #f8fffa;
@@ -145,25 +144,12 @@
       background: #e7e7e7;
       color: #25622d;
     }
-    #btn-logout {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      background: #d32f2f;
-      color: #fff;
-      border: none;
-      border-radius: 7px;
-      padding: 8px 20px;
-      font-weight: bold;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
   <header>
     <h1>SafeMountain</h1>
     <p>Sistema di sicurezza per escursionisti basato su mappa</p>
-    <button id="btn-logout">Logout</button>
   </header>
 
   <nav>
@@ -181,7 +167,11 @@
     </div>
     <button id="salva">Salva coordinate</button>
     <div id="map"></div>
-    <div id="elenco-zone" style="max-width: 720px; margin: 22px auto; box-shadow: 0 2px 12px #0001; border-radius: 8px; background: white">
+
+    <div
+      id="elenco-zone"
+      style="max-width: 720px; margin: 22px auto; box-shadow: 0 2px 12px #0001; border-radius: 8px; background: white"
+    >
       <table style="width: 100%; border-collapse: collapse">
         <thead>
           <tr style="background: #e8f5e9">
@@ -225,85 +215,13 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-    const supabaseUrl = 'https://agmrlgybyqkilqumgnco.supabase.co';
-    const supabaseKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnbXJsZ3lieXFraWxxdW1nbmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyNjE0MTYsImV4cCI6MjA3NTgzNzQxNn0.XY-HharpF3mXEpVsYVYq2NIecvl642ZywZRke6Erf-w';
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Funzione di controllo login, redirect se non loggato
-    async function checkAuth() {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        window.location.href = 'login.html';
-      }
-      return data.user;
-    }
-
-    // Funzione per caricare le zone salvate dell'utente
-    async function caricaZoneUtente() {
-      const user = await checkAuth();
-      if (!user) return;
-      
-      const { data, error } = await supabase
-        .from('user_zones')
-        .select('*')
-        .eq('user_id', user.id);
-      
-      if (error) {
-        console.error('Errore nel caricamento delle zone:', error);
-        return;
-      }
-      
-      if (data && data.length > 0) {
-        data.forEach((zone) => {
-          const geojson = zone.geojson;
-          if (geojson && geojson.geometry) {
-            // Crea il layer dalla geometria GeoJSON
-            const layer = L.geoJSON(geojson).getLayers()[0];
-            if (layer) {
-              // Imposta popup con i dati della zona
-              const props = geojson.properties || {};
-              layer.bindPopup(
-                `<b>${props.name || zone.name || 'Senza nome'}</b><br>` +
-                (props.tipo ? `<i>Tipo:</i> ${props.tipo}<br>` : '') +
-                (props.comprensorio ? `<i>Comprensorio:</i> ${props.comprensorio}` : '')
-              );
-              // Aggiungi il layer alla mappa
-              drawnItems.addLayer(layer);
-              // Aggiungi il GeoJSON all'array globale
-              allGeoJSON.push(geojson);
-            }
-          }
-        });
-        
-        // Aggiorna la tabella con le zone caricate
-        aggiornaTabellaZone(
-          data.map((z) => ({
-            nome: z.name || '-',
-            tipo: z.tipo || '-',
-            comprensorio: z.comprensorio || '-',
-            stato: 'Online',
-          }))
-        );
-      }
-    }
-
-    // Logout button
-    document.getElementById('btn-logout').onclick = async () => {
-      await supabase.auth.signOut();
-      window.location.href = 'login.html';
-    };
-
-    // Variabili globali
+  <script>
     let allGeoJSON = [];
     let areaPending = null;
 
+    // Rendi le variabili e funzioni globali per usarle anche nel modulo Supabase
     window.allGeoJSON = allGeoJSON;
 
-    // Aggiorna tabella aree
     function aggiornaTabellaZone(statusArr) {
       const tbody = document.getElementById('zone-tbody');
       tbody.innerHTML = '';
@@ -326,7 +244,6 @@
     }
     window.aggiornaTabellaZone = aggiornaTabellaZone;
 
-    // Gestione popup per nome zona
     function openNomeModal(callback) {
       const modal = document.getElementById('modal-nome-zona');
       modal.classList.add('active');
@@ -360,7 +277,6 @@
       document.getElementById('modal-nome-zona').classList.remove('active');
     }
 
-    // Inizializza la mappa
     const map = L.map('map').setView([42.5, 13.4], 10);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18,
@@ -381,7 +297,6 @@
     });
     map.addControl(drawControl);
 
-    // Gestisci eventi di creazione figure sulla mappa
     map.on(L.Draw.Event.CREATED, function (e) {
       areaPending = e.layer;
       openNomeModal(function (datiZona) {
@@ -410,42 +325,59 @@
         alert('Zona aggiunta. Ricordati di salvare le coordinate.');
       });
     });
+  </script>
 
-    // Salva zone nel DB supabase al click bottone
-    document.getElementById('salva').addEventListener('click', async () => {
-  const user = await checkAuth();
-  if (allGeoJSON.length === 0) {
-    alert('Non hai ancora disegnato nessuna zona.');
-    return;
-  }
-  try {
-    for (const zone of allGeoJSON) {
-      const dbZone = {
-        user_id: user.id,
-        name: zone.properties.name || 'Senza nome',
-        tipo: zone.properties.tipo || null,
-        comprensorio: zone.properties.comprensorio || null,
-        geojson: zone,
-      };
-      // Upsert: inserisce o aggiorna se esistono user_id e name uguali
-      await supabase.from('user_zones').upsert(dbZone, { onConflict: ['user_id', 'name'] });
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabaseUrl = 'https://agmrlgybyqkilqumgnco.supabase.co';
+    const supabaseKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnbXJsZ3lieXFraWxxdW1nbmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyNjE0MTYsImV4cCI6MjA3NTgzNzQxNn0.XY-HharpF3mXEpVsYVYq2NIecvl642ZywZRke6Erf-w';
+    const bucketName = 'geojson';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    async function uploadToSupabase(fileName, fileData) {
+      const { data, error } = await supabase
+        .storage
+        .from(bucketName)
+        .upload(fileName, new Blob([fileData], { type: 'application/json' }), { upsert: true });
+      if (error) throw error;
+      const { data: publicUrlData } = supabase.storage.from(bucketName).getPublicUrl(fileName);
+      return publicUrlData.publicUrl;
     }
-    alert('Zone salvate nel database!');
-    aggiornaTabellaZone(
-      allGeoJSON.map((z) => ({
-        nome: z.properties.name || '-',
-        tipo: z.properties.tipo || '-',
-        comprensorio: z.properties.comprensorio || '-',
-        stato: 'Online',
-      }))
-    );
-  } catch (e) {
-    alert('Errore nel salvataggio: ' + e.message);
-  }
-});
-</script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('salva').addEventListener('click', async () => {
+        if (window.allGeoJSON.length === 0) {
+          alert('Non hai ancora disegnato nessuna zona.');
+          return;
+        }
+        const geojsonFeatureCollection = {
+          type: 'FeatureCollection',
+          features: window.allGeoJSON,
+        };
+        const fileName = 'zone_pericolose.geojson';
+        const fileData = JSON.stringify(geojsonFeatureCollection);
+        try {
+          const url = await uploadToSupabase(fileName, fileData);
+          alert('File caricato! Link pubblico da usare su Arduino:\n' + url);
+          window.aggiornaTabellaZone(
+            window.allGeoJSON.map((z) => ({
+              nome: z.properties.name || '-',
+              tipo: z.properties.tipo || '-',
+              comprensorio: z.properties.comprensorio || '-',
+              stato: 'Online',
+            }))
+          );
+        } catch (e) {
+          alert('Errore nell’upload: ' + e.message);
+        }
+      });
+    });
+  </script>
 </body>
 </html>
+
 
 
 
