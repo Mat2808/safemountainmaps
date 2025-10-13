@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login SafeMountain</title>
+  <style>
+    body { font-family: 'Montserrat', Arial; background: #f4f8f4; }
+    .login-container { max-width:400px; margin:50px auto; padding:20px; background:#fff; border-radius: 10px; box-shadow: 0 2px 12px #ccc; }
+    input, button { width: 100%; padding: 10px; margin: 7px 0; border-radius: 6px; border:1px solid #ccc; font-size: 1em;}
+    button { background:#2e7031; color:#fff; font-weight: bold; cursor:pointer;}
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Login SafeMountain</h1>
+    <input id="email" type="email" placeholder="Email" required>
+    <input id="password" type="password" placeholder="Password" required>
+    <button id="btn-login">Login</button>
+    <button id="btn-signup">Registrati</button>
+    <div id="status"></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const supabase = createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_ANON_KEY');
+
+    document.getElementById('btn-login').onclick = async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const status = document.getElementById('status');
+      if (error) {
+        status.textContent = `Errore: ${error.message}`;
+      } else {
+        status.textContent = 'Login corretto, attendi...';
+        window.location.href = 'main.html';
+      }
+    };
+
+    document.getElementById('btn-signup').onclick = async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const { error } = await supabase.auth.signUp({ email, password });
+      document.getElementById('status').textContent = error ? `Errore: ${error.message}` : 'Registrazione completata, verifica mail!';
+    };
+  </script>
+</body>
+</html>
