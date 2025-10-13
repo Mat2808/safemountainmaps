@@ -233,28 +233,61 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnbXJsZ3lieXFraWxxdW1nbmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyNjE0MTYsImV4cCI6MjA3NTgzNzQxNn0.XY-HharpF3mXEpVsYVYq2NIecvl642ZywZRke6Erf-w';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Funzione di controllo login, redirect se non loggato
     async function checkAuth() {
       const { data } = await supabase.auth.getUser();
       if (!data.user) {
         window.location.href = 'login.html';
       }
+      await loadUserZones();
       return data.user;
     }
 
-    // Logout button
+    async function loadUserZones() {
+      const user = await checkAuth();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('user_zones')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        alert('Errore caricamento zone: ' + error.message);
+        return;
+      }
+
+      // Pulisci e ricrea la mappa e tabella con i dati
+      drawnItems.clearLayers();
+      allGeoJSON = [];
+
+      data.forEach(zone => {
+        let layer = L.geoJSON(zone.geojson).getLayers()[0];
+        layer.addTo(drawnItems);
+        layer.bindPopup(
+          `<b>${zone.name}</b><br>` +
+          (zone.tipo ? `<i>Tipo:</i> ${zone.tipo}<br>` : '') +
+          (zone.comprensorio ? `<i>Comprensorio:</i> ${zone.comprensorio}` : '')
+        );
+        allGeoJSON.push(zone.geojson);
+      });
+
+      aggiornaTabellaZone(data.map(z => ({
+        nome: z.name || '-',
+        tipo: z.tipo || '-',
+        comprensorio: z.comprensorio || '-',
+        stato: 'Online'
+      })));
+    }
+
     document.getElementById('btn-logout').onclick = async () => {
       await supabase.auth.signOut();
       window.location.href = 'login.html';
     };
 
-    // Variabili globali
     let allGeoJSON = [];
     let areaPending = null;
-
     window.allGeoJSON = allGeoJSON;
 
-    // Aggiorna tabella aree
     function aggiornaTabellaZone(statusArr) {
       const tbody = document.getElementById('zone-tbody');
       tbody.innerHTML = '';
@@ -265,9 +298,7 @@
             <td>${row.tipo}</td>
             <td>${row.comprensorio}</td>
             <td>
-              <span style="color:${
-                row.stato === 'Online' ? '#2e7031' : '#d32f2f'
-              };font-weight:bold;">
+              <span style="color:${row.stato === 'Online' ? '#2e7031' : '#d32f2f'};font-weight:bold;">
                 ${row.stato}
               </span>
             </td>
@@ -277,7 +308,6 @@
     }
     window.aggiornaTabellaZone = aggiornaTabellaZone;
 
-    // Gestione popup per nome zona
     function openNomeModal(callback) {
       const modal = document.getElementById('modal-nome-zona');
       modal.classList.add('active');
@@ -311,7 +341,6 @@
       document.getElementById('modal-nome-zona').classList.remove('active');
     }
 
-    // Inizializza la mappa
     const map = L.map('map').setView([42.5, 13.4], 10);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18,
@@ -332,7 +361,6 @@
     });
     map.addControl(drawControl);
 
-    // Gestisci eventi di creazione figure sulla mappa
     map.on(L.Draw.Event.CREATED, function (e) {
       areaPending = e.layer;
       openNomeModal(function (datiZona) {
@@ -362,7 +390,6 @@
       });
     });
 
-    // Salva zone nel DB supabase al click bottone
     document.getElementById('salva').addEventListener('click', async () => {
       const user = await checkAuth();
       if (allGeoJSON.length === 0) {
@@ -381,14 +408,7 @@
           await supabase.from('user_zones').insert(dbZone);
         }
         alert('Zone salvate nel database!');
-        aggiornaTabellaZone(
-          allGeoJSON.map((z) => ({
-            nome: z.properties.name || '-',
-            tipo: z.properties.tipo || '-',
-            comprensorio: z.properties.comprensorio || '-',
-            stato: 'Online',
-          }))
-        );
+        await loadUserZones(); // Ricarica le zone fresche dal DB dopo salvataggio
       } catch (e) {
         alert('Errore nel salvataggio: ' + e.message);
       }
@@ -396,6 +416,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
