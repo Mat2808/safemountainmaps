@@ -216,30 +216,34 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
   <script>
-    const map = L.map('map').setView([42.5, 13.4], 10);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution: '© OpenStreetMap',
-    }).addTo(map);
-    const drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
-    const drawControl = new L.Control.Draw({
-      edit: { featureGroup: drawnItems },
-      draw: {
-        polygon: { allowIntersection: false, showArea: true, shapeOptions: { color: '#d32f2f' } },
-        rectangle: true,
-        polyline: false,
-        circle: false,
-        marker: false,
-        circlemarker: false,
-      },
-    });
-    map.addControl(drawControl);
-
     let allGeoJSON = [];
     let areaPending = null;
 
-    // --- MODALE MULTI-CAMPO ---
+    // Rendi le variabili e funzioni globali per usarle anche nel modulo Supabase
+    window.allGeoJSON = allGeoJSON;
+
+    function aggiornaTabellaZone(statusArr) {
+      const tbody = document.getElementById('zone-tbody');
+      tbody.innerHTML = '';
+      statusArr.forEach((row) => {
+        tbody.innerHTML += `
+          <tr>
+            <td style="padding:7px 2px;">${row.nome}</td>
+            <td>${row.tipo}</td>
+            <td>${row.comprensorio}</td>
+            <td>
+              <span style="color:${
+                row.stato === 'Online' ? '#2e7031' : '#d32f2f'
+              };font-weight:bold;">
+                ${row.stato}
+              </span>
+            </td>
+          </tr>
+        `;
+      });
+    }
+    window.aggiornaTabellaZone = aggiornaTabellaZone;
+
     function openNomeModal(callback) {
       const modal = document.getElementById('modal-nome-zona');
       modal.classList.add('active');
@@ -273,6 +277,26 @@
       document.getElementById('modal-nome-zona').classList.remove('active');
     }
 
+    const map = L.map('map').setView([42.5, 13.4], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© OpenStreetMap',
+    }).addTo(map);
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+    const drawControl = new L.Control.Draw({
+      edit: { featureGroup: drawnItems },
+      draw: {
+        polygon: { allowIntersection: false, showArea: true, shapeOptions: { color: '#d32f2f' } },
+        rectangle: true,
+        polyline: false,
+        circle: false,
+        marker: false,
+        circlemarker: false,
+      },
+    });
+    map.addControl(drawControl);
+
     map.on(L.Draw.Event.CREATED, function (e) {
       areaPending = e.layer;
       openNomeModal(function (datiZona) {
@@ -301,25 +325,6 @@
         alert('Zona aggiunta. Ricordati di salvare le coordinate.');
       });
     });
-
-    function aggiornaTabellaZone(statusArr) {
-      const tbody = document.getElementById('zone-tbody');
-      tbody.innerHTML = '';
-      statusArr.forEach((row) => {
-        tbody.innerHTML += `
-          <tr>
-            <td style="padding:7px 2px;">${row.nome}</td>
-            <td>${row.tipo}</td>
-            <td>${row.comprensorio}</td>
-            <td>
-              <span style="color:${row.stato === 'Online' ? '#2e7031' : '#d32f2f'};font-weight:bold;">
-                ${row.stato}
-              </span>
-            </td>
-          </tr>
-        `;
-      });
-    }
   </script>
 
   <script type="module">
@@ -327,7 +332,52 @@
 
     const supabaseUrl = 'https://agmrlgybyqkilqumgnco.supabase.co';
     const supabaseKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnbXJsZ3lieXFraWxxdW1nbmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyNjE0MTYsImV4cCI6MjA3NTgzNz
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnbXJsZ3lieXFraWxxdW1nbmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyNjE0MTYsImV4cCI6MjA3NTgzNzQxNn0.XY-HharpF3mXEpVsYVYq2NIecvl642ZywZRke6Erf-w';
+    const bucketName = 'geojson';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    async function uploadToSupabase(fileName, fileData) {
+      const { data, error } = await supabase
+        .storage
+        .from(bucketName)
+        .upload(fileName, new Blob([fileData], { type: 'application/json' }), { upsert: true });
+      if (error) throw error;
+      const { data: publicUrlData } = supabase.storage.from(bucketName).getPublicUrl(fileName);
+      return publicUrlData.publicUrl;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('salva').addEventListener('click', async () => {
+        if (window.allGeoJSON.length === 0) {
+          alert('Non hai ancora disegnato nessuna zona.');
+          return;
+        }
+        const geojsonFeatureCollection = {
+          type: 'FeatureCollection',
+          features: window.allGeoJSON,
+        };
+        const fileName = 'zone_pericolose.geojson';
+        const fileData = JSON.stringify(geojsonFeatureCollection);
+        try {
+          const url = await uploadToSupabase(fileName, fileData);
+          alert('File caricato! Link pubblico da usare su Arduino:\n' + url);
+          window.aggiornaTabellaZone(
+            window.allGeoJSON.map((z) => ({
+              nome: z.properties.name || '-',
+              tipo: z.properties.tipo || '-',
+              comprensorio: z.properties.comprensorio || '-',
+              stato: 'Online',
+            }))
+          );
+        } catch (e) {
+          alert('Errore nell’upload: ' + e.message);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
 
 
 
