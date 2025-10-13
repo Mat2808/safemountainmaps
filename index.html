@@ -91,6 +91,55 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 <script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+  const supabaseUrl = "https://agmrlgybyqkilqumgnco.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnbXJsZ3lieXFraWxxdW1nbmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyNjE0MTYsImV4cCI6MjA3NTgzNzQxNn0.XY-HharpF3mXEpVsYVYq2NIecvl642ZywZRke6Erf-w";
+  const bucketName = "geojson"; // usa esattamente il nome del bucket creato su Supabase
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  async function uploadToSupabase(fileName, fileData) {
+    const { data, error } = await supabase
+      .storage
+      .from(bucketName)
+      .upload(fileName, new Blob([fileData], { type: "application/json" }), { upsert: true });
+    if (error) throw error;
+    const { data: publicUrlData } = supabase
+      .storage
+      .from(bucketName)
+      .getPublicUrl(fileName);
+    return publicUrlData.publicUrl;
+  }
+
+  // Modifica o aggiungi questo listener nel tuo script
+  document.getElementById('salva').addEventListener('click', async () => {
+    if (allGeoJSON.length === 0) {
+      alert('Non hai ancora disegnato nessuna zona.');
+      return;
+    }
+    const geojsonFeatureCollection = {
+      type: "FeatureCollection",
+      features: allGeoJSON
+    };
+    const fileName = "zone_pericolose.geojson";
+    const fileData = JSON.stringify(geojsonFeatureCollection);
+    try {
+      const url = await uploadToSupabase(fileName, fileData);
+      alert("File caricato! Link pubblico da usare su Arduino:\n" + url);
+      aggiornaTabellaZone(allGeoJSON.map(z => ({
+        nome: z.properties.name || '-',
+        tipo: z.properties.tipo || '-',
+        comprensorio: z.properties.comprensorio || '-',
+        stato: 'Online'
+      })));
+      // Puoi aggiungere una visualizzazione dell’URL qui se vuoi
+    } catch (e) {
+      alert("Errore nell’upload: " + e.message);
+    }
+  });
+</script>
 const map = L.map('map').setView([42.5, 13.4], 10);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map);
 const drawnItems = new L.FeatureGroup();
@@ -167,6 +216,7 @@ function aggiornaTabellaZone(statusArr){
 </script>
 </body>
 </html>
+
 
 
 
