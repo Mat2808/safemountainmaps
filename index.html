@@ -432,15 +432,34 @@
 
    let lastDrawnLayer = null;
 
-map.on(L.Draw.Event.CREATED, function (e) {
-  if (!supabase.auth.user()) {
-    alert('Devi essere loggato per disegnare zone.');
-    return;
-  }
-  lastDrawnLayer = e.layer;
-  drawnItems.addLayer(lastDrawnLayer);
-  // Non aprire il modal qui
-});
+ map.on(L.Draw.Event.CREATED, function (e) {
+      areaPending = e.layer;
+      openNomeModal(function (datiZona) {
+        if (datiZona && datiZona.nome) {
+          areaPending.feature = areaPending.feature || {};
+          areaPending.feature.properties = areaPending.feature.properties || {};
+          areaPending.feature.properties.name = datiZona.nome;
+          areaPending.feature.properties.tipo = datiZona.tipo;
+          areaPending.feature.properties.comprensorio = datiZona.compr;
+          areaPending.bindPopup(
+            `<b>${datiZona.nome}</b><br>` +
+              (datiZona.tipo ? `<i>Tipo:</i> ${datiZona.tipo}<br>` : '') +
+              (datiZona.compr ? `<i>Comprensorio:</i> ${datiZona.compr}` : '')
+          );
+        }
+        drawnItems.addLayer(areaPending);
+        const geojson = areaPending.toGeoJSON();
+        if (datiZona) {
+          geojson.properties = geojson.properties || {};
+          geojson.properties.name = datiZona.nome;
+          geojson.properties.tipo = datiZona.tipo;
+          geojson.properties.comprensorio = datiZona.compr;
+        }
+        allGeoJSON.push(geojson);
+        areaPending = null;
+        alert('Zona aggiunta. Ricordati di salvare le coordinate.');
+      });
+    });
 
 map.on('draw:drawstop', function (e) {
   if (!lastDrawnLayer) return;
@@ -645,6 +664,7 @@ map.on('draw:drawstop', function (e) {
   </script>
 </body>
 </html>
+
 
 
 
