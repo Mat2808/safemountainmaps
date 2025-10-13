@@ -430,41 +430,47 @@
     });
     map.addControl(drawControl);
 
-    map.on(L.Draw.Event.CREATED, function (e) {
-      if (!supabase.auth.user()) {
-        alert('Devi essere loggato per disegnare zone.');
-        return;
-      }
-      areaPending = e.layer;
-      openNomeModal(function (datiZona) {
-        if (datiZona && datiZona.nome) {
-          areaPending.feature = areaPending.feature || {};
-          areaPending.feature.properties = areaPending.feature.properties || {};
-          areaPending.feature.properties.name = datiZona.nome;
-          areaPending.feature.properties.tipo = datiZona.tipo;
-          areaPending.feature.properties.comprensorio = datiZona.compr;
-          areaPending.bindPopup(
-            `<b>${datiZona.nome}</b><br>` +
-              (datiZona.tipo ? `<i>Tipo:</i> ${datiZona.tipo}<br>` : '') +
-              (datiZona.compr ? `<i>Comprensorio:</i> ${datiZona.compr}` : '')
-          );
-          drawnItems.addLayer(areaPending);
-          const geojson = areaPending.toGeoJSON();
-          if (datiZona) {
-            geojson.properties = geojson.properties || {};
-            geojson.properties.name = datiZona.nome;
-            geojson.properties.tipo = datiZona.tipo;
-            geojson.properties.comprensorio = datiZona.compr;
-            geojson.properties.user_id = supabase.auth.user().id;
-          }
-          allGeoJSON.push(geojson);
-          areaPending = null;
-          alert('Zona aggiunta. Ricordati di salvare le coordinate.');
-        } else {
-          areaPending = null;
-        }
-      });
-    });
+   let lastDrawnLayer = null;
+
+map.on(L.Draw.Event.CREATED, function (e) {
+  if (!supabase.auth.user()) {
+    alert('Devi essere loggato per disegnare zone.');
+    return;
+  }
+  lastDrawnLayer = e.layer;
+  drawnItems.addLayer(lastDrawnLayer);
+  // Non aprire il modal qui
+});
+
+map.on('draw:drawstop', function (e) {
+  if (!lastDrawnLayer) return;
+  openNomeModal(function (datiZona) {
+    if (datiZona && datiZona.nome) {
+      lastDrawnLayer.feature = lastDrawnLayer.feature || {};
+      lastDrawnLayer.feature.properties = lastDrawnLayer.feature.properties || {};
+      lastDrawnLayer.feature.properties.name = datiZona.nome;
+      lastDrawnLayer.feature.properties.tipo = datiZona.tipo;
+      lastDrawnLayer.feature.properties.comprensorio = datiZona.compr;
+      lastDrawnLayer.bindPopup(
+        `<b>${datiZona.nome}</b><br>` +
+          (datiZona.tipo ? `<i>Tipo:</i> ${datiZona.tipo}<br>` : '') +
+          (datiZona.compr ? `<i>Comprensorio:</i> ${datiZona.compr}` : '')
+      );
+      const geojson = lastDrawnLayer.toGeoJSON();
+      geojson.properties = geojson.properties || {};
+      geojson.properties.name = datiZona.nome;
+      geojson.properties.tipo = datiZona.tipo;
+      geojson.properties.comprensorio = datiZona.compr;
+      geojson.properties.user_id = supabase.auth.user().id;
+      allGeoJSON.push(geojson);
+      alert('Zona aggiunta. Ricordati di salvare le coordinate.');
+    } else {
+      drawnItems.removeLayer(lastDrawnLayer);
+    }
+    lastDrawnLayer = null;
+  });
+});
+
 
     async function uploadToSupabase(fileName, fileData) {
       const { data, error } = await supabase
@@ -639,6 +645,7 @@
   </script>
 </body>
 </html>
+
 
 
 
