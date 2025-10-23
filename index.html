@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SafeMountain - Sicurezza Escursionisti</title>
+  <title>SafeMountain - Hiker Safety</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
@@ -46,7 +46,7 @@
       width: 96%;
       box-shadow: 0 4px 10px #0002;
     }
-    #salva {
+    #save {
       margin: 14px auto 6px auto;
       padding: 10px 32px;
       background-color: #2e7031;
@@ -59,7 +59,7 @@
       display: block;
       transition: background 0.25s;
     }
-    #salva:hover {
+    #save:hover {
       background: #43a047;
     }
     section#info {
@@ -81,7 +81,7 @@
       font-size: 1em;
       box-shadow: 0 2px 8px #0001;
     }
-    #modal-nome-zona {
+    #modal-name-zone {
       display: none;
       position: fixed;
       z-index: 9999;
@@ -94,10 +94,10 @@
       align-items: center;
       justify-content: center;
     }
-    #modal-nome-zona.active {
+    #modal-name-zone.active {
       display: flex;
     }
-    #modal-content-nomezona {
+    #modal-content-namezone {
       background: #fff;
       border-radius: 14px;
       box-shadow: 0 6px 26px #0004;
@@ -117,8 +117,8 @@
         transform: scale(1);
       }
     }
-    #modal-content-nomezona input,
-    #modal-content-nomezona select {
+    #modal-content-namezone input,
+    #modal-content-namezone select {
       font-size: 1em;
       padding: 9px 8px;
       width: 98%;
@@ -126,7 +126,7 @@
       border-radius: 7px;
       border: 1.2px solid #86d6ba;
     }
-    #modal-content-nomezona button {
+    #modal-content-namezone button {
       padding: 7px 20px;
       font-weight: bold;
       border: none;
@@ -135,11 +135,11 @@
       margin-right: 7px;
       font-size: 1em;
     }
-    #btn-nome-conferma {
+    #btn-name-confirm {
       background: #299d42;
       color: white;
     }
-    #btn-nome-cancella {
+    #btn-nome-cancel {
       background: #e7e7e7;
       color: #25622d;
     }
@@ -148,27 +148,27 @@
 <body>
   <header>
     <h1>SafeMountain</h1>
-    <p>Sistema di sicurezza per escursionisti basato su mappa</p>
+    <p>Map-based hiker safety system</p>
   </header>
 
   <nav>
     <a href="#">Home</a>
-    <a href="#mappa">Mappa</a>
-    <a href="#info">Info Progetto</a>
+    <a href="#mappa">Map</a>
+    <a href="#info">Project Info</a>
   </nav>
 
-  <section id="mappa">
+  <section id="map">
     <div class="guide">
-      <strong>Come funziona?</strong><br />
-      1. Disegna le zone pericolose sulla mappa.<br />
-      2. Clicca su “Salva coordinate” per esportare le aree online.<br />
-      <span style="color: #d32f2f">Attenzione:</span> I dati devono essere verificati e approvati dall’ente responsabile.
+      <strong>How does it work?</strong><br />
+      1. Draw danger zones on the map.<br />
+      2. Click on “Save coordinates” to export the areas online.<br />
+      <span style="color: #d32f2f">Attention:</span> The data must be verified and approved by the responsible body.
     </div>
-    <button id="salva">Salva coordinate</button>
+    <button id="save">Save coordinates</button>
     <div id="map"></div>
 
     <div
-      id="elenco-zone"
+      id="zone-list"
       style="max-width: 720px; margin: 22px auto; box-shadow: 0 2px 12px #0001; border-radius: 8px; background: white"
     >
       <table style="width: 100%; border-collapse: collapse">
@@ -186,28 +186,28 @@
   </section>
 
   <section id="info">
-    <h2>Informazioni sul progetto</h2>
+    <h2>Information about the project</h2>
     <p>
-      Questo progetto permette di creare mappe di aree pericolose in montagna,
-      salvabili online per dispositivi di sicurezza.
+      This project allows you to create maps of dangerous areas in the mountains,
+which can be saved online for safety purposes.
     </p>
   </section>
 
-  <div id="modal-nome-zona">
-    <div id="modal-content-nomezona">
-      <div class="titolo">Definisci questa zona</div>
-      <input id="input-nome-zona" type="text" maxlength="50" placeholder="Nome zona" /><br />
+  <div id="modal-name-zone">
+    <div id="modal-content-name-zone">
+      <div class="titolo">Define this area</div>
+      <input id="input-name-zone" type="text" maxlength="50" placeholder="Area name" /><br />
       <select id="tipo-zona">
-        <option value="">Tipo di zona...</option>
+        <option value="">Zone type...</option>
         <option value="Pista Sci">Pista Sci</option>
         <option value="Fuori Pista">Fuori Pista</option>
         <option value="Valanga">Valanga</option>
         <option value="Area Sosta">Area Sosta</option>
         <option value="Altro">Altro</option>
       </select><br />
-      <input id="input-comprensorio" type="text" maxlength="50" placeholder="Comprensorio / Area" /><br />
-      <button id="btn-nome-conferma">OK</button>
-      <button id="btn-nome-cancella">Annulla</button>
+      <input id="input-district" type="text" maxlength="50" placeholder="Comprensorio / Area" /><br />
+      <button id="btn-name-confirm">OK</button>
+      <button id="btn-name-cancel">Cancel</button>
     </div>
   </div>
 
@@ -221,7 +221,7 @@
     // Rendi le variabili e funzioni globali per usarle anche nel modulo Supabase
     window.allGeoJSON = allGeoJSON;
 
-    function aggiornaTabellaZone(statusArr) {
+    function updateTableZones(statusArr) {
       const tbody = document.getElementById('zone-tbody');
       tbody.innerHTML = '';
       statusArr.forEach((row) => {
@@ -376,6 +376,7 @@
   </script>
 </body>
 </html>
+
 
 
 
