@@ -1,4 +1,4 @@
-<html lang="it">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -46,7 +46,7 @@
       width: 96%;
       box-shadow: 0 4px 10px #0002;
     }
-    #save {
+    #salva {
       margin: 14px auto 6px auto;
       padding: 10px 32px;
       background-color: #2e7031;
@@ -59,7 +59,7 @@
       display: block;
       transition: background 0.25s;
     }
-    #save:hover {
+    #salva:hover {
       background: #43a047;
     }
     section#info {
@@ -81,7 +81,7 @@
       font-size: 1em;
       box-shadow: 0 2px 8px #0001;
     }
-    #modal-name-zone {
+    #modal-nome-zona {
       display: none;
       position: fixed;
       z-index: 9999;
@@ -94,10 +94,10 @@
       align-items: center;
       justify-content: center;
     }
-    #modal-name-zone.active {
+    #modal-nome-zona.active {
       display: flex;
     }
-    #modal-content-namezone {
+    #modal-content-nomezona {
       background: #fff;
       border-radius: 14px;
       box-shadow: 0 6px 26px #0004;
@@ -117,8 +117,8 @@
         transform: scale(1);
       }
     }
-    #modal-content-namezone input,
-    #modal-content-namezone select {
+    #modal-content-nomezona input,
+    #modal-content-nomezona select {
       font-size: 1em;
       padding: 9px 8px;
       width: 98%;
@@ -126,7 +126,7 @@
       border-radius: 7px;
       border: 1.2px solid #86d6ba;
     }
-    #modal-content-namezone button {
+    #modal-content-nomezona button {
       padding: 7px 20px;
       font-weight: bold;
       border: none;
@@ -135,11 +135,11 @@
       margin-right: 7px;
       font-size: 1em;
     }
-    #btn-name-confirm {
+    #btn-nome-conferma {
       background: #299d42;
       color: white;
     }
-    #btn-nome-cancel {
+    #btn-nome-cancella {
       background: #e7e7e7;
       color: #25622d;
     }
@@ -148,7 +148,7 @@
 <body>
   <header>
     <h1>SafeMountain</h1>
-    <p>Map-based hiker safety system</p>
+    <p>Map-based safety system for hikers</p>
   </header>
 
   <nav>
@@ -157,27 +157,27 @@
     <a href="#info">Project Info</a>
   </nav>
 
-  <section id="map">
+  <section id="mappa">
     <div class="guide">
       <strong>How does it work?</strong><br />
-      1. Draw danger zones on the map.<br />
-      2. Click on “Save coordinates” to export the areas online.<br />
-      <span style="color: #d32f2f">Attention:</span> The data must be verified and approved by the responsible body.
+      1. Draw the dangerous zones on the map.<br />
+      2. Click "Save coordinates" to export the areas online.<br />
+      <span style="color: #d32f2f">Warning:</span> The data must be verified and approved by the responsible authority.
     </div>
-    <button id="save">Save coordinates</button>
+    <button id="salva">Save coordinates</button>
     <div id="map"></div>
 
     <div
-      id="zone-list"
+      id="elenco-zone"
       style="max-width: 720px; margin: 22px auto; box-shadow: 0 2px 12px #0001; border-radius: 8px; background: white"
     >
       <table style="width: 100%; border-collapse: collapse">
         <thead>
           <tr style="background: #e8f5e9">
-            <th style="padding: 9px 2px">Nome zona</th>
-            <th>Tipo</th>
-            <th>Comprensorio</th>
-            <th>Stato</th>
+            <th style="padding: 9px 2px">Zone Name</th>
+            <th>Type</th>
+            <th>Area</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody id="zone-tbody"></tbody>
@@ -186,28 +186,28 @@
   </section>
 
   <section id="info">
-    <h2>Information about the project</h2>
+    <h2>Project Information</h2>
     <p>
-      This project allows you to create maps of dangerous areas in the mountains,
-which can be saved online for safety purposes.
+      This project allows you to create maps of dangerous mountain areas,
+      saved online for safety devices.
     </p>
   </section>
 
-  <div id="modal-name-zone">
-    <div id="modal-content-name-zone">
-      <div class="titolo">Define this area</div>
-      <input id="input-name-zone" type="text" maxlength="50" placeholder="Area name" /><br />
+  <div id="modal-nome-zona">
+    <div id="modal-content-nomezona">
+      <div class="titolo">Define this zone</div>
+      <input id="input-nome-zona" type="text" maxlength="50" placeholder="Zone name" /><br />
       <select id="tipo-zona">
         <option value="">Zone type...</option>
-        <option value="Pista Sci">Pista Sci</option>
-        <option value="Fuori Pista">Fuori Pista</option>
-        <option value="Valanga">Valanga</option>
-        <option value="Area Sosta">Area Sosta</option>
-        <option value="Altro">Altro</option>
+        <option value="Pista Sci">Ski Slope</option>
+        <option value="Fuori Pista">Off-Piste</option>
+        <option value="Valanga">Avalanche</option>
+        <option value="Area Sosta">Rest Area</option>
+        <option value="Altro">Other</option>
       </select><br />
-      <input id="input-district" type="text" maxlength="50" placeholder="Comprensorio / Area" /><br />
-      <button id="btn-name-confirm">OK</button>
-      <button id="btn-name-cancel">Cancel</button>
+      <input id="input-comprensorio" type="text" maxlength="50" placeholder="Area / Region" /><br />
+      <button id="btn-nome-conferma">OK</button>
+      <button id="btn-nome-cancella">Cancel</button>
     </div>
   </div>
 
@@ -218,10 +218,10 @@ which can be saved online for safety purposes.
     let allGeoJSON = [];
     let areaPending = null;
 
-    // Rendi le variabili e funzioni globali per usarle anche nel modulo Supabase
+    // Make variables and functions global to use also in Supabase module
     window.allGeoJSON = allGeoJSON;
 
-    function updateTableZones(statusArr) {
+    function aggiornaTabellaZone(statusArr) {
       const tbody = document.getElementById('zone-tbody');
       tbody.innerHTML = '';
       statusArr.forEach((row) => {
@@ -307,8 +307,8 @@ which can be saved online for safety purposes.
           areaPending.feature.properties.comprensorio = datiZona.compr;
           areaPending.bindPopup(
             `<b>${datiZona.nome}</b><br>` +
-              (datiZona.tipo ? `<i>Tipo:</i> ${datiZona.tipo}<br>` : '') +
-              (datiZona.compr ? `<i>Comprensorio:</i> ${datiZona.compr}` : '')
+              (datiZona.tipo ? `<i>Type:</i> ${datiZona.tipo}<br>` : '') +
+              (datiZona.compr ? `<i>Area:</i> ${datiZona.compr}` : '')
           );
         }
         drawnItems.addLayer(areaPending);
@@ -321,7 +321,7 @@ which can be saved online for safety purposes.
         }
         allGeoJSON.push(geojson);
         areaPending = null;
-        alert('Zona aggiunta. Ricordati di salvare le coordinate.');
+        alert('Zone added. Remember to save the coordinates.');
       });
     });
   </script>
@@ -348,18 +348,18 @@ which can be saved online for safety purposes.
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('salva').addEventListener('click', async () => {
         if (window.allGeoJSON.length === 0) {
-          alert('Non hai ancora disegnato nessuna zona.');
+          alert('You have not drawn any zones yet.');
           return;
         }
         const geojsonFeatureCollection = {
           type: 'FeatureCollection',
           features: window.allGeoJSON,
         };
-        const fileName = 'zone_pericolose.geojson';
+        const fileName = 'danger_zones.geojson';
         const fileData = JSON.stringify(geojsonFeatureCollection);
         try {
           const url = await uploadToSupabase(fileName, fileData);
-          alert('File caricato! Link pubblico da usare su Arduino:\n' + url);
+          alert('File uploaded! Public link to use on Arduino:\n' + url);
           window.aggiornaTabellaZone(
             window.allGeoJSON.map((z) => ({
               nome: z.properties.name || '-',
@@ -369,13 +369,15 @@ which can be saved online for safety purposes.
             }))
           );
         } catch (e) {
-          alert('Errore nell’upload: ' + e.message);
+          alert('Upload error: ' + e.message);
         }
       });
     });
   </script>
 </body>
 </html>
+
+
 
 
 
