@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -143,6 +144,19 @@
       background: #e7e7e7;
       color: #25622d;
     }
+    .btn-elimina-zona {
+      background: #d32f2f;
+      color: white;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9em;
+      transition: background 0.2s;
+    }
+    .btn-elimina-zona:hover {
+      background: #b71c1c;
+    }
   </style>
 </head>
 <body>
@@ -178,6 +192,7 @@
             <th>Type</th>
             <th>Area</th>
             <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody id="zone-tbody"></tbody>
@@ -217,6 +232,7 @@
   <script>
     let allGeoJSON = [];
     let areaPending = null;
+    let layerIdCounter = 0;
 
     // Make variables and functions global to use also in Supabase module
     window.allGeoJSON = allGeoJSON;
@@ -237,11 +253,50 @@
                 ${row.stato}
               </span>
             </td>
+            <td>
+              <button class="btn-elimina-zona" data-layer-id="${row.layerId}">Delete</button>
+            </td>
           </tr>
         `;
       });
+
+      // Aggiungi event listener ai pulsanti di eliminazione
+      document.querySelectorAll('.btn-elimina-zona').forEach((btn) => {
+        btn.addEventListener('click', function () {
+          const layerId = parseInt(this.getAttribute('data-layer-id'));
+          eliminaZona(layerId);
+        });
+      });
     }
     window.aggiornaTabellaZone = aggiornaTabellaZone;
+
+    function eliminaZona(layerId) {
+      // Rimuovi dal layer group sulla mappa
+      drawnItems.eachLayer(function (layer) {
+        if (layer._customId === layerId) {
+          drawnItems.removeLayer(layer);
+        }
+      });
+
+      // Rimuovi dall'array GeoJSON
+      const index = allGeoJSON.findIndex((item) => item._customId === layerId);
+      if (index > -1) {
+        allGeoJSON.splice(index, 1);
+      }
+
+      // Aggiorna la tabella
+      window.aggiornaTabellaZone(
+        allGeoJSON.map((z) => ({
+          nome: z.properties.name || '-',
+          tipo: z.properties.tipo || '-',
+          comprensorio: z.properties.comprensorio || '-',
+          stato: 'Pending',
+          layerId: z._customId,
+        }))
+      );
+
+      alert('Zone deleted successfully.');
+    }
 
     function openNomeModal(callback) {
       const modal = document.getElementById('modal-nome-zona');
@@ -300,6 +355,9 @@
       areaPending = e.layer;
       openNomeModal(function (datiZona) {
         if (datiZona && datiZona.nome) {
+          const customId = layerIdCounter++;
+          areaPending._customId = customId;
+
           areaPending.feature = areaPending.feature || {};
           areaPending.feature.properties = areaPending.feature.properties || {};
           areaPending.feature.properties.name = datiZona.nome;
@@ -310,18 +368,32 @@
               (datiZona.tipo ? `<i>Type:</i> ${datiZona.tipo}<br>` : '') +
               (datiZona.compr ? `<i>Area:</i> ${datiZona.compr}` : '')
           );
+
+          drawnItems.addLayer(areaPending);
+          const geojson = areaPending.toGeoJSON();
+          if (datiZona) {
+            geojson.properties = geojson.properties || {};
+            geojson.properties.name = datiZona.nome;
+            geojson.properties.tipo = datiZona.tipo;
+            geojson.properties.comprensorio = datiZona.compr;
+          }
+          geojson._customId = customId;
+          allGeoJSON.push(geojson);
+
+          // Aggiorna la tabella
+          window.aggiornaTabellaZone(
+            allGeoJSON.map((z) => ({
+              nome: z.properties.name || '-',
+              tipo: z.properties.tipo || '-',
+              comprensorio: z.properties.comprensorio || '-',
+              stato: 'Pending',
+              layerId: z._customId,
+            }))
+          );
+
+          alert('Zone added. Remember to save the coordinates.');
         }
-        drawnItems.addLayer(areaPending);
-        const geojson = areaPending.toGeoJSON();
-        if (datiZona) {
-          geojson.properties = geojson.properties || {};
-          geojson.properties.name = datiZona.nome;
-          geojson.properties.tipo = datiZona.tipo;
-          geojson.properties.comprensorio = datiZona.compr;
-        }
-        allGeoJSON.push(geojson);
         areaPending = null;
-        alert('Zone added. Remember to save the coordinates.');
       });
     });
   </script>
@@ -366,6 +438,7 @@
               tipo: z.properties.tipo || '-',
               comprensorio: z.properties.comprensorio || '-',
               stato: 'Online',
+              layerId: z._customId,
             }))
           );
         } catch (e) {
@@ -376,42 +449,6 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
