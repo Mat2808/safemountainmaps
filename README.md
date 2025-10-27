@@ -60,17 +60,13 @@ Currently in development:
 
 ## 🤝 Contributing
 
-This is a personal project for the MIT Maker Portfolio. Feedback and suggestions are welcome!
+This is a personal project which I have presented to the MIT Maker Portfolio. Feedback and suggestions are welcome!
 
-## 📄 License
-
-[Your chosen license, e.g., MIT License]
 
 ## 👤 Author
 
-[Your name]
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Project developed for MIT Maker Portfolio 2025
+Matteo Di Muzio
+- GitHub: [@Mat2808][(https://github.com/Mat2808/safemountainmaps)]
 
 ---
 
