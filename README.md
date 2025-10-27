@@ -30,7 +30,7 @@ Unlike reactive safety systems that alert only after accidents, SafeMountain foc
 
 ### Live Demo
 
-🌐 [View Live Demo](https://yourusername.github.io/safemountain/)
+🌐 [View Live Demo]([https://yourusername.github.io/safemountain/](https://mat2808.github.io/safemountainmaps/)
 
 ## 🎥 Video Demo
 
