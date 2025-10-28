@@ -22,7 +22,7 @@ Unlike reactive safety systems that alert only after accidents, SafeMountain foc
 
 ## 🛠️ Technologies Used
 
-- HTML5, CSS3, JavaScript
+- HTML5, --CSS3, JavaScript--
 - [Leaflet.js](https://leafletjs.com/) - Interactive mapping library
 - [Leaflet.draw](https://leaflet.github.io/Leaflet.draw/) - Drawing tools for hazard zones
 - OpenStreetMap - Map tile provider
