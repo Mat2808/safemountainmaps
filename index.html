@@ -1,178 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SafeMountain - Hiker Safety</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
-  <style>
-    body {
-      font-family: 'Montserrat', Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f4f8f4;
-      color: #222;
-    }
-    header {
-      background: linear-gradient(90deg, #388e3c 70%, #8bc34a 100%);
-      color: white;
-      padding: 2em 1em 1em;
-      text-align: center;
-      box-shadow: 0 2px 8px #0002;
-    }
-    nav {
-      background: #f8fffa;
-      padding: 1em 0.5em;
-      text-align: center;
-      box-shadow: 0 2px 6px #0001;
-    }
-    nav a {
-      margin: 0 1em;
-      color: #387d34;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 1.1em;
-      transition: color 0.2s;
-    }
-    nav a:hover,
-    nav a:focus {
-      color: #ff9800;
-    }
-    #map {
-      height: 70vh;
-      border-radius: 12px;
-      margin: 10px auto;
-      width: 96%;
-      box-shadow: 0 4px 10px #0002;
-    }
-    #salva {
-      margin: 14px auto 6px auto;
-      padding: 10px 32px;
-      background-color: #2e7031;
-      color: white;
-      border: none;
-      border-radius: 7px;
-      cursor: pointer;
-      font-size: 1.05em;
-      box-shadow: 0 2px 6px #0001;
-      display: block;
-      transition: background 0.25s;
-    }
-    #salva:hover {
-      background: #43a047;
-    }
-    section#info {
-      max-width: 700px;
-      background: #fff;
-      margin: 2em auto;
-      border-radius: 10px;
-      padding: 1.5em;
-      box-shadow: 0 2px 18px #0001;
-      color: #29552a;
-    }
-    .guide {
-      background: #e8f5e9;
-      border-left: 5px solid #ffd600;
-      color: #29552a;
-      margin: 18px 7%;
-      padding: 13px 18px;
-      border-radius: 7px;
-      font-size: 1em;
-      box-shadow: 0 2px 8px #0001;
-    }
-    #modal-nome-zona {
-      display: none;
-      position: fixed;
-      z-index: 9999;
-      left: 0;
-      top: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(45, 70, 38, 0.18);
-      backdrop-filter: blur(2px);
-      align-items: center;
-      justify-content: center;
-    }
-    #modal-nome-zona.active {
-      display: flex;
-    }
-    #modal-content-nomezona {
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 6px 26px #0004;
-      padding: 30px 32px 22px;
-      min-width: 340px;
-      text-align: center;
-      border: 2px solid #33ad69;
-      animation: modalpop 0.22s;
-    }
-    @keyframes modalpop {
-      0% {
-        opacity: 0;
-        transform: scale(1.09);
-      }
-      100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-    #modal-content-nomezona input,
-    #modal-content-nomezona select {
-      font-size: 1em;
-      padding: 9px 8px;
-      width: 98%;
-      margin-bottom: 11px;
-      border-radius: 7px;
-      border: 1.2px solid #86d6ba;
-    }
-    #modal-content-nomezona button {
-      padding: 7px 20px;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-right: 7px;
-      font-size: 1em;
-    }
-    #btn-nome-conferma {
-      background: #299d42;
-      color: white;
-    }
-    #btn-nome-cancella {
-      background: #e7e7e7;
-      color: #25622d;
-    }
-    .btn-elimina-zona {
-      background: #d32f2f;
-      color: white;
-      border: none;
-      padding: 5px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.9em;
-      transition: background 0.2s;
-    }
-    .btn-elimina-zona:hover {
-      background: #b71c1c;
-    }
-    .btn-edit-zona {
-      background: #2196f3;
-      color: white;
-      border: none;
-      padding: 5px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.9em;
-      transition: background 0.2s;
-      margin-right: 6px;
-    }
-    .btn-edit-zona:hover {
-      background: #1976d2;
-    }
-  </style>
-</head>
 <body>
   <header>
     <h1>SafeMountain</h1>
@@ -230,7 +55,7 @@
     <div id="modal-content-nomezona">
       <div class="titolo">Define this zone</div>
       <input id="input-nome-zona" type="text" maxlength="50" placeholder="Zone name" /><br />
-      <select id="tipo-zona">
+      <select id="type-zona">
         <option value="">Zone type...</option>
         <option value="Ski Slope">Ski Slope</option>
         <option value="Tourist trail">Tourist trail</option>
@@ -240,7 +65,7 @@
         <option value="Difficult crossings">Difficult crossings</option>
         <option value="General hazard">General hazard</option>
       </select><br />
-      <input id="input-comprensorio" type="text" maxlength="50" placeholder="Area / Region" /><br />
+      <input id="input-area" type="text" maxlength="50" placeholder="Area / Region" /><br />
       <button id="btn-nome-conferma">OK</button>
       <button id="btn-nome-cancella">Cancel</button>
     </div>
@@ -264,8 +89,8 @@
         tbody.innerHTML += `
           <tr>
             <td style="padding:7px 2px;">${row.nome}</td>
-            <td>${row.tipo}</td>
-            <td>${row.comprensorio}</td>
+            <td>${row.type}</td>
+            <td>${row.area}</td>
             <td>
               <span style="color:${row.stato === 'Online' ? '#2e7031' : '#d32f2f'};font-weight:bold;">
                 ${row.stato}
@@ -310,8 +135,8 @@
       window.aggiornaTabellaZone(
         allGeoJSON.map((z) => ({
           nome: z.properties.name || '-',
-          tipo: z.properties.tipo || '-',
-          comprensorio: z.properties.comprensorio || '-',
+          type: z.properties.type || '-',
+          area: z.properties.area || '-',
           stato: 'Pending',
           layerId: z._customId,
         }))
@@ -325,16 +150,16 @@
       modal.classList.add('active');
 
       const inputNome = document.getElementById('input-nome-zona');
-      const inputTipo = document.getElementById('tipo-zona');
-      const inputCompr = document.getElementById('input-comprensorio');
+      const inputtype = document.getElementById('type-zona');
+      const inputCompr = document.getElementById('input-area');
 
       if (zoneData) {
         inputNome.value = zoneData.nome || '';
-        inputTipo.value = zoneData.tipo || '';
-        inputCompr.value = zoneData.comprensorio || '';
+        inputtype.value = zoneData.type || '';
+        inputCompr.value = zoneData.area || '';
       } else {
         inputNome.value = '';
-        inputTipo.value = '';
+        inputtype.value = '';
         inputCompr.value = '';
       }
       inputNome.focus();
@@ -344,10 +169,10 @@
 
       btnOk.onclick = () => {
         let nome = inputNome.value.trim();
-        let tipo = inputTipo.value.trim();
+        let type = inputtype.value.trim();
         let compr = inputCompr.value.trim();
         closeNomeModal();
-        callback({ nome, tipo, compr });
+        callback({ nome, type, compr });
       };
       btnCancel.onclick = () => {
         closeNomeModal();
@@ -375,18 +200,18 @@
           if (updatedData) {
             // Update GeoJSON object in allGeoJSON array
             zone.properties.name = updatedData.nome;
-            zone.properties.tipo = updatedData.tipo;
-            zone.properties.comprensorio = updatedData.compr;
+            zone.properties.type = updatedData.type;
+            zone.properties.area = updatedData.compr;
 
             // Update layer popup and properties on the map layer
             drawnItems.eachLayer((layer) => {
               if (layer._customId === layerId) {
                 layer.feature.properties.name = updatedData.nome;
-                layer.feature.properties.tipo = updatedData.tipo;
-                layer.feature.properties.comprensorio = updatedData.compr;
+                layer.feature.properties.type = updatedData.type;
+                layer.feature.properties.area = updatedData.compr;
                 layer.bindPopup(
                   `<b>${updatedData.nome}</b><br>` +
-                    (updatedData.tipo ? `<i>Type:</i> ${updatedData.tipo}<br>` : '') +
+                    (updatedData.type ? `<i>Type:</i> ${updatedData.type}<br>` : '') +
                     (updatedData.compr ? `<i>Area:</i> ${updatedData.compr}` : '')
                 );
               }
@@ -396,8 +221,8 @@
             window.aggiornaTabellaZone(
               allGeoJSON.map((z) => ({
                 nome: z.properties.name || '-',
-                tipo: z.properties.tipo || '-',
-                comprensorio: z.properties.comprensorio || '-',
+                type: z.properties.type || '-',
+                area: z.properties.area || '-',
                 stato: 'Pending',
                 layerId: z._customId,
               }))
@@ -411,8 +236,8 @@
         },
         {
           nome: zone.properties.name,
-          tipo: zone.properties.tipo,
-          comprensorio: zone.properties.comprensorio,
+          type: zone.properties.type,
+          area: zone.properties.area,
         }
       );
     }
@@ -447,11 +272,11 @@
           areaPending.feature = areaPending.feature || {};
           areaPending.feature.properties = areaPending.feature.properties || {};
           areaPending.feature.properties.name = datiZona.nome;
-          areaPending.feature.properties.tipo = datiZona.tipo;
-          areaPending.feature.properties.comprensorio = datiZona.compr;
+          areaPending.feature.properties.type = datiZona.type;
+          areaPending.feature.properties.area = datiZona.compr;
           areaPending.bindPopup(
             `<b>${datiZona.nome}</b><br>` +
-              (datiZona.tipo ? `<i>Type:</i> ${datiZona.tipo}<br>` : '') +
+              (datiZona.type ? `<i>Type:</i> ${datiZona.type}<br>` : '') +
               (datiZona.compr ? `<i>Area:</i> ${datiZona.compr}` : '')
           );
 
@@ -459,16 +284,16 @@
           const geojson = areaPending.toGeoJSON();
           geojson.properties = geojson.properties || {};
           geojson.properties.name = datiZona.nome;
-          geojson.properties.tipo = datiZona.tipo;
-          geojson.properties.comprensorio = datiZona.compr;
+          geojson.properties.type = datiZona.type;
+          geojson.properties.area = datiZona.compr;
           geojson._customId = customId;
           allGeoJSON.push(geojson);
 
           window.aggiornaTabellaZone(
             allGeoJSON.map((z) => ({
               nome: z.properties.name || '-',
-              tipo: z.properties.tipo || '-',
-              comprensorio: z.properties.comprensorio || '-',
+              type: z.properties.type || '-',
+              area: z.properties.area || '-',
               stato: 'Pending',
               layerId: z._customId,
             }))
@@ -518,8 +343,8 @@
           window.aggiornaTabellaZone(
             window.allGeoJSON.map((z) => ({
               nome: z.properties.name || '-',
-              tipo: z.properties.tipo || '-',
-              comprensorio: z.properties.comprensorio || '-',
+              type: z.properties.type || '-',
+              area: z.properties.area || '-',
               stato: 'Online',
               layerId: z._customId,
             }))
@@ -532,6 +357,7 @@
   </script>
 </body>
 </html>
+
 
 
 
