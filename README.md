@@ -22,7 +22,7 @@ Unlike reactive safety systems that alert only after accidents, SafeMountain foc
 
 ## 🛠️ Technologies Used
 
-- HTML5, --CSS3, JavaScript--
+- HTML5, JavaScript--
 - [Leaflet.js](https://leafletjs.com/) - Interactive mapping library
 - [Leaflet.draw](https://leaflet.github.io/Leaflet.draw/) - Drawing tools for hazard zones
 - OpenStreetMap - Map tile provider
@@ -30,7 +30,7 @@ Unlike reactive safety systems that alert only after accidents, SafeMountain foc
 
 ### Live Demo
 
-🌐 [View Live Demo][(https://mat2808.github.io/safemountainmaps/)]
+🌐 [View Live Demo](https://mat2808.github.io/safemountainmaps/)
 
 ## 🎥 Video Demo
 
@@ -55,8 +55,9 @@ Currently in development:
 - ✅ Interactive map with drawing tools
 - ✅ Cataloging and classification system
 - ✅ GeoJSON export functionality
+- ✅ Cloud storage integration
 - 🔄 Physical GPS device (planned)
-- 🔄 Cloud storage integration (planned)
+
 
 ## 🤝 Contributing
 
