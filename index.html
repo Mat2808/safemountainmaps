@@ -157,20 +157,6 @@
     .btn-elimina-zona:hover {
       background: #b71c1c;
     }
-    .btn-edit-zona {
-      background: #2196f3;
-      color: white;
-      border: none;
-      padding: 5px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.9em;
-      transition: background 0.2s;
-      margin-right: 6px;
-    }
-    .btn-edit-zona:hover {
-      background: #1976d2;
-    }
   </style>
 </head>
 <body>
@@ -230,7 +216,7 @@
     <div id="modal-content-nomezona">
       <div class="titolo">Define this zone</div>
       <input id="input-nome-zona" type="text" maxlength="50" placeholder="Zone name" /><br />
-      <select id="type-zona">
+      <select id="tipo-zona">
         <option value="">Zone type...</option>
         <option value="Ski Slope">Ski Slope</option>
         <option value="Tourist trail">Tourist trail</option>
@@ -240,7 +226,7 @@
         <option value="Difficult crossings">Difficult crossings</option>
         <option value="General hazard">General hazard</option>
       </select><br />
-      <input id="input-area" type="text" maxlength="50" placeholder="Area / Region" /><br />
+      <input id="input-comprensorio" type="text" maxlength="50" placeholder="Area / Region" /><br />
       <button id="btn-nome-conferma">OK</button>
       <button id="btn-nome-cancella">Cancel</button>
     </div>
@@ -253,8 +239,8 @@
     let allGeoJSON = [];
     let areaPending = null;
     let layerIdCounter = 0;
-    let editingLayerId = null;
 
+    // Make variables and functions global to use also in Supabase module
     window.allGeoJSON = allGeoJSON;
 
     function aggiornaTabellaZone(statusArr) {
@@ -264,54 +250,52 @@
         tbody.innerHTML += `
           <tr>
             <td style="padding:7px 2px;">${row.nome}</td>
-            <td>${row.type}</td>
-            <td>${row.area}</td>
+            <td>${row.tipo}</td>
+            <td>${row.comprensorio}</td>
             <td>
-              <span style="color:${row.stato === 'Online' ? '#2e7031' : '#d32f2f'};font-weight:bold;">
+              <span style="color:${
+                row.stato === 'Online' ? '#2e7031' : '#d32f2f'
+              };font-weight:bold;">
                 ${row.stato}
               </span>
             </td>
             <td>
-              <button class="btn-edit-zona" data-layer-id="${row.layerId}" style="margin-right:6px;">Edit</button>
               <button class="btn-elimina-zona" data-layer-id="${row.layerId}">Delete</button>
             </td>
           </tr>
         `;
       });
 
+      // Aggiungi event listener ai pulsanti di eliminazione
       document.querySelectorAll('.btn-elimina-zona').forEach((btn) => {
         btn.addEventListener('click', function () {
           const layerId = parseInt(this.getAttribute('data-layer-id'));
           eliminaZona(layerId);
         });
       });
-
-      document.querySelectorAll('.btn-edit-zona').forEach((btn) => {
-        btn.addEventListener('click', function () {
-          const layerId = parseInt(this.getAttribute('data-layer-id'));
-          openEditModal(layerId);
-        });
-      });
     }
     window.aggiornaTabellaZone = aggiornaTabellaZone;
 
     function eliminaZona(layerId) {
+      // Rimuovi dal layer group sulla mappa
       drawnItems.eachLayer(function (layer) {
         if (layer._customId === layerId) {
           drawnItems.removeLayer(layer);
         }
       });
 
+      // Rimuovi dall'array GeoJSON
       const index = allGeoJSON.findIndex((item) => item._customId === layerId);
       if (index > -1) {
         allGeoJSON.splice(index, 1);
       }
 
+      // Aggiorna la tabella
       window.aggiornaTabellaZone(
         allGeoJSON.map((z) => ({
           nome: z.properties.name || '-',
-          type: z.properties.type || '-',
-          area: z.properties.area || '-',
+          tipo: z.properties.tipo || '-',
+          comprensorio: z.properties.comprensorio || '-',
           stato: 'Pending',
           layerId: z._customId,
         }))
@@ -320,34 +304,25 @@
       alert('Zone deleted successfully.');
     }
 
-    function openNomeModal(callback, zoneData = null) {
+    function openNomeModal(callback) {
       const modal = document.getElementById('modal-nome-zona');
       modal.classList.add('active');
-
       const inputNome = document.getElementById('input-nome-zona');
-      const inputtype = document.getElementById('type-zona');
-      const inputCompr = document.getElementById('input-area');
-
-      if (zoneData) {
-        inputNome.value = zoneData.nome || '';
-        inputtype.value = zoneData.type || '';
-        inputCompr.value = zoneData.area || '';
-      } else {
-        inputNome.value = '';
-        inputtype.value = '';
-        inputCompr.value = '';
-      }
+      const inputTipo = document.getElementById('tipo-zona');
+      const inputCompr = document.getElementById('input-comprensorio');
+      inputNome.value = '';
+      inputTipo.value = '';
+      inputCompr.value = '';
       inputNome.focus();
 
       const btnOk = document.getElementById('btn-nome-conferma');
       const btnCancel = document.getElementById('btn-nome-cancella');
-
       btnOk.onclick = () => {
         let nome = inputNome.value.trim();
-        let type = inputtype.value.trim();
+        let tipo = inputTipo.value.trim();
         let compr = inputCompr.value.trim();
         closeNomeModal();
-        callback({ nome, type, compr });
+        callback({ nome, tipo, compr });
       };
       btnCancel.onclick = () => {
         closeNomeModal();
@@ -358,63 +333,8 @@
         if (e.key === 'Escape') btnCancel.click();
       };
     }
-
     function closeNomeModal() {
       document.getElementById('modal-nome-zona').classList.remove('active');
-    }
-
-    function openEditModal(layerId) {
-      const zoneIndex = allGeoJSON.findIndex((z) => z._customId === layerId);
-      if (zoneIndex === -1) return alert('Zone not found');
-
-      const zone = allGeoJSON[zoneIndex];
-      editingLayerId = layerId;
-
-      openNomeModal(
-        (updatedData) => {
-          if (updatedData) {
-            // Update GeoJSON object in allGeoJSON array
-            zone.properties.name = updatedData.nome;
-            zone.properties.type = updatedData.type;
-            zone.properties.area = updatedData.compr;
-
-            // Update layer popup and properties on the map layer
-            drawnItems.eachLayer((layer) => {
-              if (layer._customId === layerId) {
-                layer.feature.properties.name = updatedData.nome;
-                layer.feature.properties.type = updatedData.type;
-                layer.feature.properties.area = updatedData.compr;
-                layer.bindPopup(
-                  `<b>${updatedData.nome}</b><br>` +
-                    (updatedData.type ? `<i>Type:</i> ${updatedData.type}<br>` : '') +
-                    (updatedData.compr ? `<i>Area:</i> ${updatedData.compr}` : '')
-                );
-              }
-            });
-
-            // Mark zone as pending on update
-            window.aggiornaTabellaZone(
-              allGeoJSON.map((z) => ({
-                nome: z.properties.name || '-',
-                type: z.properties.type || '-',
-                area: z.properties.area || '-',
-                stato: 'Pending',
-                layerId: z._customId,
-              }))
-            );
-
-            alert('Zone updated. Remember to save the coordinates.');
-            editingLayerId = null;
-          } else {
-            editingLayerId = null;
-          }
-        },
-        {
-          nome: zone.properties.name,
-          type: zone.properties.type,
-          area: zone.properties.area,
-        }
-      );
     }
 
     const map = L.map('map').setView([42.5, 13.4], 10);
@@ -447,28 +367,31 @@
           areaPending.feature = areaPending.feature || {};
           areaPending.feature.properties = areaPending.feature.properties || {};
           areaPending.feature.properties.name = datiZona.nome;
-          areaPending.feature.properties.type = datiZona.type;
-          areaPending.feature.properties.area = datiZona.compr;
+          areaPending.feature.properties.tipo = datiZona.tipo;
+          areaPending.feature.properties.comprensorio = datiZona.compr;
           areaPending.bindPopup(
             `<b>${datiZona.nome}</b><br>` +
-              (datiZona.type ? `<i>Type:</i> ${datiZona.type}<br>` : '') +
+              (datiZona.tipo ? `<i>Type:</i> ${datiZona.tipo}<br>` : '') +
               (datiZona.compr ? `<i>Area:</i> ${datiZona.compr}` : '')
           );
 
           drawnItems.addLayer(areaPending);
           const geojson = areaPending.toGeoJSON();
-          geojson.properties = geojson.properties || {};
-          geojson.properties.name = datiZona.nome;
-          geojson.properties.type = datiZona.type;
-          geojson.properties.area = datiZona.compr;
+          if (datiZona) {
+            geojson.properties = geojson.properties || {};
+            geojson.properties.name = datiZona.nome;
+            geojson.properties.tipo = datiZona.tipo;
+            geojson.properties.comprensorio = datiZona.compr;
+          }
           geojson._customId = customId;
           allGeoJSON.push(geojson);
 
+          // Aggiorna la tabella
           window.aggiornaTabellaZone(
             allGeoJSON.map((z) => ({
               nome: z.properties.name || '-',
-              type: z.properties.type || '-',
-              area: z.properties.area || '-',
+              tipo: z.properties.tipo || '-',
+              comprensorio: z.properties.comprensorio || '-',
               stato: 'Pending',
               layerId: z._customId,
             }))
@@ -518,8 +441,8 @@
           window.aggiornaTabellaZone(
             window.allGeoJSON.map((z) => ({
               nome: z.properties.name || '-',
-              type: z.properties.type || '-',
-              area: z.properties.area || '-',
+              tipo: z.properties.tipo || '-',
+              comprensorio: z.properties.comprensorio || '-',
               stato: 'Online',
               layerId: z._customId,
             }))
@@ -532,6 +455,7 @@
   </script>
 </body>
 </html>
+
 
 
 
