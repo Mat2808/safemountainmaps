@@ -32,10 +32,6 @@ Unlike reactive safety systems that alert only after accidents, SafeMountain foc
 
 🌐 [View Live Demo](https://mat2808.github.io/safemountainmaps/)
 
-## 🎥 Video Demo
-
-[Link to video demonstration]
-
 ## 💡 How It Works
 
 1. **Authorities** access the web app and draw hazard zones on the map
