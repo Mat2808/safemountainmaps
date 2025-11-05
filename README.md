@@ -57,7 +57,7 @@ Currently in development:
 
 ## 🤝 Contributing
 
-This is a personal project which I have presented to the MIT Maker Portfolio. Feedback and suggestions are welcome!
+Feedback and suggestions are welcome!
 
 
 ## 👤 Author
